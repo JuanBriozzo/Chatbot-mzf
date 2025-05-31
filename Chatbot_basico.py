@@ -10,7 +10,7 @@ st.markdown("Conversá con el asistente para inscribirte, informar resultados y 
 HF_TOKEN = st.secrets["HF_TOKEN"]
 
 # URL del modelo (puede cambiarse por otro compatible con text2text-generation o text-generation)
-API_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-base-finetuned-squadv2"
+API_URL = "https://api-inference.huggingface.co/models/tiiuae/falcon-rw-1b"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 # Instrucción base
