@@ -7,7 +7,7 @@ st.title("🎾 Chatbot MZF - Torneos de Tenis")
 st.markdown("Conversá con el asistente para inscribirte, informar resultados y consultar sobre el torneo.")
 
 # Tu Hugging Face API Token (reemplazá por el tuyo)
-HF_TOKEN = "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"
+HF_TOKEN = st.secrets["HF_TOKEN"]
 
 # Inicializar historial del chat
 if "messages" not in st.session_state:
