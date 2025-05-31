@@ -1,52 +1,51 @@
 import streamlit as st
-import openai
+import requests
 
-# Configurar página
+# Configuración de página
 st.set_page_config(page_title="Chatbot MZF", layout="centered")
 st.title("🎾 Chatbot MZF - Torneos de Tenis")
 st.markdown("Conversá con el asistente para inscribirte, informar resultados y consultar sobre el torneo.")
 
-# Cargar clave secreta de OpenAI
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Tu Hugging Face API Token (reemplazá por el tuyo)
+HF_TOKEN = "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"
 
-# Inicializar sesión
+# Inicializar historial del chat
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "system", "content": (
-            "Sos un asistente para la organización de un torneo de tenis. "
-            "Tu trabajo es inscribir jugadores, registrar resultados, explicar reglas "
-            "y ayudar con información sobre partidos. "
-            "Si te dan un marcador, asumí que es un resultado; "
-            "si te saludan, saludá cordialmente; "
-            "si te preguntan por partidos, respondé con claridad. "
-            "Pedí el nombre si el usuario aún no se identificó. "
-            "Reconocé frases como 'anotarme', 'me inscribo', 'quiero participar', 'gané 6-4', 'juego hoy', etc."
-        )}
-    ]
+    st.session_state.messages = []
 
-# Mostrar historial del chat
-for msg in st.session_state.messages[1:]:
+# Mostrar historial
+for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Input del usuario
+# Entrada del usuario
 if prompt := st.chat_input("Escribí tu mensaje..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
-
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Llamar a OpenAI
+    # Preparar prompt con instrucciones
+    system_instruction = (
+        "Sos un asistente para la organización de un torneo de tenis. "
+        "Inscribís jugadores, registrás resultados, explicás reglas, y respondés dudas. "
+        "Reconocé saludos y frases como 'anotarme', 'quiero participar', 'gané 6-4', 'juego hoy'. "
+        "Si no sabés algo, pedí que aclaren."
+    )
+    full_prompt = f"{system_instruction}\n\nUsuario: {prompt}\nAsistente:"
+
+    # Llamar al modelo de Hugging Face
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=st.session_state.messages,
-            temperature=0.6
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/google/flan-t5-small",
+            headers={"Authorization": f"Bearer {HF_TOKEN}"},
+            json={"inputs": full_prompt}
         )
-        assistant_reply = response.choices[0].message["content"]
+        result = response.json()
+        assistant_reply = result[0]["generated_text"]
     except Exception as e:
         assistant_reply = f"⚠️ Hubo un error al conectar con el modelo: {e}"
 
+    # Mostrar y guardar respuesta
     st.session_state.messages.append({"role": "assistant", "content": assistant_reply})
     with st.chat_message("assistant"):
         st.markdown(assistant_reply)
